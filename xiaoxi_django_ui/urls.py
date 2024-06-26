@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index),
     path('stream/', views.stream),
+    path('stream1/', views.stream1),
 ]

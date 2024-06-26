@@ -54,10 +54,6 @@
 <body>
 <div class="center-screen">
     <div style="display: flex; align-items: flex-start;">
-        <div class="display-show">
-            <label for="referencData">参考数据：</label>
-            <textarea id="referencData" style="width: 400px; height: 649px; overflow: auto;" readonly></textarea>
-        </div>
         <div>
             <div class="center-content">
                 <label for="model_name">选择模型：</label>
@@ -119,11 +115,12 @@
         document.getElementById("display-area").value += "user: " + message + "\n";
 
         // Data to be sent in the request
-        const data = { prompt: message };
+        const data = {prompt: message};
 
         try {
             // Send the request and process the response stream
-            await sendRequest('POST', 'http://127.0.0.1:8000:8000/chat/stream', data);
+            await sendRequest('POST', 'https://u430182-ac52-13068849.cqa1.seetacloud.com/chat/stream', data);
+            // await sendRequest('POST', 'https://u430182-8ae0-895009fa.cqa1.seetacloud.com/chat/stream1', data);
         } catch (error) {
             console.error('Error:', error);
             alert("Error sending message. Please try again.");
@@ -153,7 +150,7 @@
         // Send request using Fetch API
         const response = await fetch(url, {
             method: method,
-            headers: { ...defaultHeaders, ...headers },
+            headers: {...defaultHeaders, ...headers},
             body: JSON.stringify(data)
         });
 
@@ -167,12 +164,12 @@
 
         let textSoFar = '';
         while (true) {
-            const { value, done } = await reader.read();
+            const {value, done} = await reader.read();
             if (done) break;
-            textSoFar += decoder.decode(value, { stream: true });
+            textSoFar += decoder.decode(value, {stream: true});
 
             // Update the display area incrementally with each chunk of data
-            document.getElementById("display-area").value += textSoFar + "\n";
+            document.getElementById("display-area").value = textSoFar;
         }
     }
 
