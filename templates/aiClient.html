@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Interface</title>
+    <style>
+        textarea, input, select {
+            border: 1px solid black;
+            margin: 1px;
+        }
+
+        button {
+            width: 70px;
+            height: 30px;
+        }
+
+        .center-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: auto;
+        }
+
+        .display-show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-right: 8px;
+            margin-left: 8px;
+        }
+
+        .center-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        /* Add this rule */
+        #url, #referencData, #text-input {
+            font-size: 18px;
+        }
+
+        #addUrlButton {
+            margin-left: 10px;
+            width: 70px;
+            height: 30px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="center-screen">
+    <div style="display: flex; align-items: flex-start;">
+        <div class="display-show">
+            <label for="referencData">参考数据：</label>
+            <textarea id="referencData" style="width: 400px; height: 649px; overflow: auto;" readonly></textarea>
+        </div>
+        <div>
+            <div class="center-content">
+                <label for="model_name">选择模型：</label>
+                <select id="model_name" style="width: 900px; height: 30px;">
+                    <option value="Qwen2-72B-int4">Qwen2-72B-int4</option>
+{#                    <option value="qianfan_4">qianfan_4.0</option>#}
+{#                    <option value="gpt3.5">gpt3.5</option>#}
+{#                    <option value="gpt_4o">gpt_4o</option>#}
+                </select>
+            </div>
+            <div>
+                <textarea id="display-area" style="width: 900px; height: 500px; overflow: auto;" readonly></textarea>
+            </div>
+            <div>
+                <textarea id="text-input" style="width: 900px; height: 100px; overflow: auto;">悉尼大学奖学金</textarea>
+            </div>
+            <div>
+                <button onclick="clearInput()">Clear</button>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // 清空输入框
+    function clearInput() {
+        document.getElementById("text-input").value = "";
+    }
+
+    // Function to generate a random token
+    function generateToken(length) {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let token = '';
+        for (let i = 0; i < length; i++) {
+            token += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return token;
+    }
+
+    // Variable to store the generated token
+    let token = "";
+
+    // Generate a token on window load
+    window.onload = function () {
+        token = generateToken(16);
+    }
+
+    // Function to send a message
+    async function sendMessage() {
+        const message = document.getElementById("text-input").value;
+        // Check if the input is empty
+        if (!message.trim()) {
+            return; // If the input is empty, stop the function execution
+        }
+
+        // Disable the send button
+        const sendButton = document.querySelector('button[onclick="sendMessage()"]');
+        sendButton.disabled = true;
+        sendButton.textContent = "Loading..."; // Change button text to show loading state
+
+        // Update the display area with the user's message
+        document.getElementById("display-area").value += "user: " + message + "\n";
+
+        // Data to be sent in the request
+        const data = { prompt: message };
+
+        try {
+            // Send the request and get the response
+            const response = await sendRequest('POST', 'http://192.168.16.141:8000/chat/generate', data);
+
+            // Update the display area with the assistant's message
+            document.getElementById("display-area").value += "assistant: " + response.text + "\n\n";
+            document.getElementById("referencData").value = response.reference_data;
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert("Error sending message. Please try again.");
+        }
+
+        // Re-enable the send button
+        sendButton.disabled = false;
+        sendButton.textContent = "Send"; // Reset button text to original
+
+        // Clear the input area
+        clearInput();
+    }
+
+    // Function to send an AJAX request
+    function sendRequest(method, url, data = {}, headers = {}) {
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+        };
+
+        // Include the model name and token in the headers
+        const model_name = document.getElementById("model_name").value.trim();
+        if (model_name) {
+            defaultHeaders['model-name'] = model_name;
+        }
+        defaultHeaders['token'] = token;
+
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                method: method,
+                url: url,
+                data: JSON.stringify(data),
+                headers: { ...defaultHeaders, ...headers },
+                success: function (response) {
+                    resolve(response);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('Error:', errorThrown);
+                    console.error('Response:', jqXHR.responseText);
+                    reject(errorThrown);
+                }
+            });
+        });
+    }
+
+    // Send message on Enter key press
+    document.getElementById("text-input").addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Prevents the default action of the Enter key
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
