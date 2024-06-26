@@ -126,7 +126,7 @@
 
         try {
             // Send the request and get the response
-            const response = await sendRequest('POST', 'http://192.168.16.141:8000/chat/generate', data);
+            const response = await sendRequest('POST', 'http://127.0.0.1:8000/chat/generate', data);
 
             // Update the display area with the assistant's message
             document.getElementById("display-area").value += "assistant: " + response.text + "\n\n";

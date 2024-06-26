@@ -123,7 +123,7 @@
 
         try {
             // Send the request and process the response stream
-            await sendRequest('POST', 'http://192.168.16.141:8000/chat/stream', data);
+            await sendRequest('POST', 'http://127.0.0.1:8000:8000/chat/stream', data);
         } catch (error) {
             console.error('Error:', error);
             alert("Error sending message. Please try again.");
